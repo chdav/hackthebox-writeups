@@ -2,20 +2,22 @@
 
 ## Linux
 
-- ### [Admirer](machines/Linux/Admirer/README.md)
+- ### Admirer
 
-- ### [Blunder](machines/Linux/Blunder/README.md)
+- ### Blunder
 
-- ### [Magic](machines/Linux/Magic/README.md)
+- ### Magic
 
 - ### [OpenAdmin](machines/Linux/OpenAdmin/README.md)
 
-- ### [Traceback](machines/Linux/Traceback/README.md)
+- ### Traceback
 
 ## Windows
 
-- ### [Monteverde](machines/Windows/Monteverde/README.md)
+- ### Monteverde
 
 - ### [Resolute](machines/Windows/Resolute/README.md)
 
-- ### [ServMon](machines/Windows/ServMon/README.md)
+- ### Sauna
+
+- ### ServMon
