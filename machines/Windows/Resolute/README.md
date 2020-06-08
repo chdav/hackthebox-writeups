@@ -123,7 +123,7 @@ $ enum4linux -U -o 10.10.10.169
 
 It looks like an admin mistakenly left a default password in the description on a user account. Odds are, one of these users may not have changed their default password. 
 
-Using `evil-winrm`, a Windows Remote Management tool for pentesting, I try each username with the password. Eventually, I successfully log in with as melanie, attaining a foothold on _Resolute_.
+Using `evil-winrm`, a Windows Remote Management tool for pentesting, I try each username with the password. Eventually, I successfully log in with melanie, attaining a foothold on _Resolute_.
 
 ```bash
 $ evil-winrm -i 10.10.10.169 -u melanie -p 'Welcome123!'
