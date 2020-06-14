@@ -160,7 +160,7 @@ I omitted some of the results, but it looks like the user mhope is apart of the 
 
 I downloaded the two files `AdDecrypt.exe` and `mcrypt.dll` and uploaded them to _Monteverde_ using the built-in feature on `evil-winrm`.
 
-![](images/uploads.PNG)
+![](images/uploads.png)
 
 Afterwards, I navigate to the `Microsoft Azure AD Sync\Bin` directory, and run the executable. 
 
@@ -198,7 +198,7 @@ $ evil-winrm -i 10.10.10.172 -u administrator -p 'd0m@in4dminyeah!'
 
 I navigate to the Administrator desktop and collect the flag. _Monteverde_ rooted!
 
-![](images/root-flag.PNG)
+![](images/root-flag.png)
 
 
 ***
