@@ -2,15 +2,15 @@
 
 ## Linux
 
-- ### Admirer
+- ### [Admirer](machines/Linux/Admirer/README.md) - _Active_
 
-- ### Blunder
+- ### [Blunder](machines/Linux/Blunder/README.md) - _Active_
 
-- ### Magic
+- ### [Magic](machines/Linux/Magic/README.md) - _Active_
 
 - ### [OpenAdmin](machines/Linux/OpenAdmin/README.md)
 
-- ### Traceback
+- ### [Traceback](machines/Linux/Traceback/README.md) - _Active_
 
 ## Windows
 
@@ -18,6 +18,8 @@
 
 - ### [Resolute](machines/Windows/Resolute/README.md)
 
-- ### Sauna
+- ### [Sauna](machines/Windows/Sauna/README.md) - _Active_
 
-- ### ServMon
+- ### [ServMon](machines/Windows/ServMon/README.md)
+
+<img src="http://www.hackthebox.eu/badge/image/273998" alt="Hack The Box">
