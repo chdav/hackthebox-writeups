@@ -34,6 +34,12 @@ This is my write-up for the HackTheBox Windows machine _Monteverde_.
 
 My first step is to run my `nmap` scan. _Monteverde_ is running a lot of services, which may indicate a Active Directory DC. 
 
+- __sC__: Enable common scripts
+
+- __sV__: version and service on the port 
+
+- __O__: remote OS detection using fingerprinting
+
 ```
 # Nmap 7.80 scan initiated Thu May 28 15:05:20 2020 as: nmap -O -sV -sC -oN init172.txt 10.10.10.172
 Nmap scan report for 10.10.10.172
@@ -203,13 +209,14 @@ I navigate to the Administrator desktop and collect the flag. _Monteverde_ roote
 
 ***
 
+### Mitigation
+
+- Don't use default or weak passwords, specifically, enforce strong policies, even on service accounts (especially on service accounts)
+
+- Patch management; Azure AD Connect should be updated when patches are available and proved stable. 
+
+- Additionally, the accounts used for services should be dedicated service accounts and not an administrator account (principle of least privilege).
+
+### Final Thoughts
+
 This was a fun box. At the time of this write-up, `SMB` is not one of my strengths, and I enjoy learning new ways of interacting with it. I also liked enumerating the machine, I can never get enough Windows enumeration. The password discovery at the beginning also felt realistic, lazy administrators may not consider the consequences of poor password practices on service accounts.
-
-### Rankings:
-
-__Real-life Applicable__: 7/10
-
-__Common Vulnerabilities__: 9/10
-
-__Enumeration__: 8/10
-
