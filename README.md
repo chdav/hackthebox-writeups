@@ -1,4 +1,4 @@
-# HackTheBox Writeups
+# Machine Write-up List
 
 ## Linux
 
