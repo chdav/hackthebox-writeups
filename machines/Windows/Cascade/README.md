@@ -98,7 +98,7 @@ $ enum4linux 10.10.10.182
 
 This reveals a list of users to us. Let's make note of these users for later.
 
-![](images/users.PNG)
+![](images/users.png)
 
 Further enumeration methods don't seem to yield any more useful results. We still don't have sufficient information to start reading file shares or gain a foothold. We'll go ahead and run `ldapsearch` and dump as much domain controller data that we can.
 
@@ -135,7 +135,7 @@ $ smbclient -L 10.10.10.182 -U r.thompson%rY4n5eva
 
 Good news, we are able to successfully view the shares on the machine. Let's start enumerating them.
 
-![](images/smbclient-ryan.PNG)
+![](images/smbclient-ryan.png)
 
 The two share that really stand out are the `Data` and `Audit$` shares. Unfortunately, user `r.thompson` doesn't have `Audit$` access, but do have permissions for the `Data` share.
 
@@ -228,7 +228,7 @@ Let's go ahead grab all the files and bring them over to our machine to perform 
 
 The first thing we'll do is check the database for anything useful. After poking around a bit, we can see that the password for the user `ArkSvc` is available, but encrypted.
 
-![](images/db.PNG)
+![](images/db.png)
 
 Traditional decoding doesn't seem to work on this string, so let's check our other two files to see if we can find something that can help us.
 
@@ -238,7 +238,7 @@ Within the `CascAudit.exe` file, we find that the encyption is the Advanced Ency
 
 Upon further investigation, we find a method containing the secret key that is used to encrypt or decrypt the password stored in the database.
 
-![](images/cascaudit-pass.PNG)
+![](images/cascaudit-pass.png)
 
 Let's make note of the secret key.
 
@@ -248,13 +248,13 @@ Secret Key: c4scadek3y654321
 
 Next, we'll decompile the `CascCrypto.dll` file. Pretty quickly, we find the value for the IV. We can also see the key size is 128.
 
-![](images/casccrypto-iv.PNG)
+![](images/casccrypto-iv.png)
 
 We can use this information to decrypt the password offline, or we can use one of the many online options. Let's go ahead and plug the pieces into [this website for online AES decryption](https://www.devglan.com/online-tools/aes-encryption-decryption).
 
 I'd also like to note that the code can be modified and executed on a Windows machine to reveal the decrypted password as well. It's good practice to have sandboxes for multiple operating systems available for situations like these.
 
-![](images/aes-decrypt.PNG)
+![](images/aes-decrypt.png)
 
 The password for the user `ArkSvc` is decrypted and we receive `w3lc0meFr31nd`. Let's attempt remote login with `evil-winrm`.
 
