@@ -22,7 +22,7 @@
 
 - ### [Blackfield](machines/Windows/Blackfield/README.md) - _Active_
 
-- ### [Cascade](machines/Windows/Cascade/README.md) - _Active_
+- ### [Cascade](machines/Windows/Cascade/README.md)
 
 - ### [Fuse](machines/Windows/Fuse/README.md) - _Active_
 
