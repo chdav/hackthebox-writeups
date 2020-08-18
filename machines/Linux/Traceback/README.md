@@ -81,7 +81,7 @@ The open ports from our `nmap` results indicate that this is a web server (port 
 
 Since we lack SSH credentials, let's check out the webpage.
 
-![](images/webpage.PNG)
+![](images/webpage.png)
 
 It looks like this site has already been hacked, and the attacker states that they have left a backdoor on the machine. There isn't much more information or additional apparent webpages, so let's check out the source for the page.
 
@@ -106,7 +106,7 @@ $ dirb http://10.10.10.181/ webshell-list.txt
 
 The webpage `http://10.10.10.181/smevk.php` successfully returns a status code 200, indicating that it is available. Let's navigate to it in our web browser.
 
-![](images/shell-login.PNG)
+![](images/shell-login.png)
 
 Looks like we'll need some credentials for the shell. Referring back to the source code for the shell, we find the default login information is `admin:admin`.
 
@@ -119,7 +119,7 @@ $auth_pass = "admin";                                  //Your Password.
 
 Trying this, we log in successfully.
 
-![](images/shell.PNG)
+![](images/shell.png)
 
 The shell has a lot of options to sift through but the first thing that stands out is the capability to upload files through the shell interface. It also looks like this shell is running as user `webadmin`.
 
@@ -158,7 +158,7 @@ $ sudo -u sysadmin /home/sysadmin/luvit pe.lua
 
 Success! We are now `sysadmin`. Let's grab the user flag.
 
-![](images/user-flag.PNG)
+![](images/user-flag.png)
 
 ## Root Flag
 
@@ -185,13 +185,13 @@ $ scp pspy64 sysadmin@10.10.10.181:/tmp
 
 Within our SSH session, we'll run `pspy64`.
 
-![](images/pspy.PNG)
+![](images/pspy.png)
 
 One process that stands out refers to the `motd.d` or "Message of the Day" daemon. Essentially, the backup "Message of the Day" is replacing the current `motd.d` every 30 seconds.
 
 More useful info on `motd.d` can be found [here](https://linuxconfig.org/how-to-change-welcome-message-motd-on-ubuntu-18-04-server).
 
-![](images/processes.PNG)
+![](images/processes.png)
 
 This process certainly stands out. Let's examine the `00-header` file, which contains the actual "Message of the Day", a bit further.
 
@@ -203,7 +203,7 @@ $ ls -al /etc/update-motd.d/00-header
 
 It looks like our header file can be edited by the `sysadmin`, yet is executed as root. This is a script, so we should be able to add commands that will execute as root and potentially escalate our privileges. Additionally, it looks like the previous attacker already edited this file with their own message.
 
-![](images/motd.PNG)
+![](images/motd.png)
 
 We'll run the following command, which will append some script to the `motd.d` header file that, when executed, will add our public SSH key to the  `authorized_keys` file of the root user.
 
@@ -217,7 +217,7 @@ Once we've run the command to append our public SSH key, we can SSH as `sysadmin
 
 We can now successfully connect with SSH as root! Let's capture the final flag.
 
-![](images/root-flag.PNG)
+![](images/root-flag.png)
 
 ***
 
