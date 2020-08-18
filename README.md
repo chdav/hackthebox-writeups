@@ -16,7 +16,7 @@
 
 - ### [Tabby](machines/Linux/Tabby/README.md) - _Active_
 
-- ### [Traceback](machines/Linux/Traceback/README.md) - _Active_
+- ### [Traceback](machines/Linux/Traceback/README.md)
 
 ## Windows
 
