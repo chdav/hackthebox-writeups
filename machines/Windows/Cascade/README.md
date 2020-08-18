@@ -38,6 +38,12 @@ This is my guide to the HackTheBox Windows machine _Cascade_.
 
 We'll begin with an `nmap` scan of the box _Cascade_. From the results, it looks like this is a domain controller.
 
+- __sC__: Enable common scripts
+
+- __sV__: version and service on the port
+
+- __O__: remote OS detection using fingerprinting
+
 ```bash
 # Nmap 7.80 scan initiated Sat Jul  4 17:54:10 2020 as: nmap -sC -sV -O -oA scan182 10.10.10.182
 Nmap scan report for 10.10.10.182

