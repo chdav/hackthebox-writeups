@@ -266,4 +266,4 @@ Finally, we'll connect via SSH and capture the final flag!
 
 ### Final Thoughts
 
-This was a great box, one of my favorites, I enjoyed it at every step. It was certainly challenging and I learned a ton about basic web application vulnerabilities. If you made it this far, feel free to check out my script! I made it to automate the initial foothold, it can be found on my Github.
+This was a great box, one of my favorites, I enjoyed it at every step. It was certainly challenging and I learned a ton about basic web application vulnerabilities. If you made it this far, feel free to check out [my script](https://github.com/chdav/hackthebox-writeups/tree/master/machines/Linux/Magic/magicjack-master)! I made it to automate the initial foothold, it can be found on my [Github](https://github.com/chdav/hackthebox-writeups).
