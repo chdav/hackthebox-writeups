@@ -8,7 +8,7 @@
 
 - ### [Cache](machines/Linux/Cache/README.md) - _Active_
 
-- ### [Magic](machines/Linux/Magic/README.md) - _Active_
+- ### [Magic](machines/Linux/Magic/README.md)
 
 - ### [OpenAdmin](machines/Linux/OpenAdmin/README.md)
 
