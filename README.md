@@ -28,7 +28,7 @@
 
 - ### [Monteverde](machines/Windows/Monteverde/README.md)
 
-- ### [Remote](machines/Windows/Remote/README.md) - _Active_
+- ### [Remote](machines/Windows/Remote/README.md)
 
 - ### [Resolute](machines/Windows/Resolute/README.md)
 
