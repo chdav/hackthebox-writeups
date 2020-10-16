@@ -176,13 +176,13 @@ What really stands out for us, though, is the `/utility-scripts` directory. With
 
 Upon closer inspection, it looks like there's some information about a program called Adminer, with a version of 4.7.7.
 
-![](images/info-script.PNG)
+![](images/info-script.png)
 
 A quick Google search reveals that [Adminer](https://www.adminer.org/) is a Database manager in a single PHP file, and can be accessed at `adminer.php`. Navigating to `http://10.10.10.187/adminer.php` doesn't work so let's try it under one of the directories that we know.
 
 The login page successfully loads at `10.10.10.187/utility-scripts/adminer.php`. We can attempt login with our previously discovered credentials, with no luck. Fortunately, we can now see that the actual version of the program is 4.6.2.
 
-![](images/adminer-login.PNG)
+![](images/adminer-login.png)
 
 A search reveals that this version of Adminer is [vulnerable to an attack](https://www.foregenix.com/blog/serious-vulnerability-discovered-in-adminer-tool) that can be used to reveal the credentials for the database, if they happen to stored in the configuration files. We remember earlier that database credentials were, in fact, stored, but it appears that they may not be up-to-date. Using this method, we may be able to dump what is currently stored.
 
@@ -190,7 +190,7 @@ In short, the attack requires us to create our own database, then connect to it 
 
 Let's go ahead and host our database and access it. It should be noted that this database is accessible by everyone on HackTheBox, so take care with best security practices, and make sure to stop the process when we're done.
 
-![](images/mysql.PNG)
+![](images/mysql.png)
 
 We'll run our commands in the MariaDB monitor, creating our user, our database, and adding a password to the user.
 
@@ -203,15 +203,15 @@ We'll run our commands in the MariaDB monitor, creating our user, our database, 
 
 Next, we'll jump back to the login page and input our information into the required fields. This should connect back to our database hosted on our machine.
 
-![](images/adminer-creds.PNG)
+![](images/adminer-creds.png)
 
 Success. We're now logged onto our database with the Adminer database manager on the _Admirer_ machine.
 
-![](images/adminer-success.PNG)
+![](images/adminer-success.png)
 
 In order for the attack to work, we need to create a table. This is were the data that we pull from local files will be stored to be accessed after the attack.
 
-![](images/create-table.PNG)
+![](images/create-table.png)
 
 Now, to run the exploit. We will run the following SQL command to try to grab the `index.php` file. Ideally, this will have current database creds that'll help us get a foothold.  
 
@@ -221,11 +221,11 @@ into table testdb.t1
 fields terminated by '\n'
 ```
 
-![](images/adminer-command.PNG)
+![](images/adminer-command.png)
 
 Query executed, with what appears to be no errors. Let's jump to our table we created earlier and see if it's populated with anything useful. Part of the way down, we can see the database credentials like before, but this time the password is different.
 
-![](images/table-pass.PNG)
+![](images/table-pass.png)
 
 Great, let's go back to our MariaDB session and quickly clean up. We'll delete the user, drop the database and stop the `MySQL` process.
 
@@ -278,7 +278,7 @@ Looks like there is a username and password combination that works on SSH. Speci
 
 Let's grab the user flag.
 
-![](images/user-flag.PNG)
+![](images/user-flag.png)
 
 ## Root Flag
 
@@ -363,7 +363,7 @@ Running backup script in the background, it might take a while...
 
 Choosing option 6 will run the python script, importing our malicious library, and executing our function. Our reverse shell connects, and we have successfully executed our privileges. Let's grab the root flag.
 
-![](images/root-flag.PNG)
+![](images/root-flag.png)
 
 ***
 
