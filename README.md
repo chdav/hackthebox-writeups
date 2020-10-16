@@ -2,7 +2,7 @@
 
 ## Linux
 
-- ### [Admirer](machines/Linux/Admirer/README.md) - _Active_
+- ### [Admirer](machines/Linux/Admirer/README.md)
 
 - ### [Blunder](machines/Linux/Blunder/README.md) - _Active_
 
