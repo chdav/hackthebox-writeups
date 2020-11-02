@@ -20,7 +20,7 @@
 
 ## Windows
 
-- ### [Blackfield](machines/Windows/Blackfield/README.md) - _Active_
+- ### [Blackfield](machines/Windows/Blackfield/README.md)
 
 - ### [Cascade](machines/Windows/Cascade/README.md)
 
