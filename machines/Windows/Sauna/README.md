@@ -219,7 +219,7 @@ Finally, let's capture the root flag.
 
 ### Mitigation
 
-- There a few ways to mitigate the risk of kerberoasting; a strong password policy helps alleviate the chance that someone will crack a hash. Additionally, avoid accounts with pre-authentication. If an organization must have that enabled, they need to have very complex passwords, as the hash is readily exposed.
+- There a few ways to mitigate the risk of kerberoasting; a strong password policy helps alleviate the chance that someone will crack a hash. Additionally, avoid accounts with pre-authentication. If an organization must have that enabled, they need to have very complex passwords, as the hash is readily exposed. Most importantly, even if the hash can't be cracked, pass-the-hash attacks can still occur.
 
 - AutoLogin credentials should be avoided. If an account must have that enabled, special consideration should be taken regarding the risks of a compromise of that account's privileges.
 
