@@ -6,7 +6,7 @@
 
 - ### [Blunder](machines/Linux/Blunder/README.md) - _Active_
 
-- ### [Cache](machines/Linux/Cache/README.md) - _Active_
+- ### [Cache](machines/Linux/Cache/README.md)
 
 - ### [Magic](machines/Linux/Magic/README.md)
 
