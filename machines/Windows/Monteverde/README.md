@@ -24,7 +24,7 @@ __Exploitation__
 
 __Priv Esc__
 
-- Azure AD Connect Service Privileged Account 
+- Azure AD Connect Service Privileged Account
 
 ***
 
@@ -32,11 +32,11 @@ This is my write-up for the HackTheBox Windows machine _Monteverde_.
 
 ## User Flag
 
-Our first step is to run an `nmap` scan. _Monteverde_ is running a lot of services, which may indicate a Active Directory DC. 
+Our first step is to run an `nmap` scan. _Monteverde_ is running a lot of services, which may indicate a Active Directory DC.
 
 - __sC__: Enable common scripts
 
-- __sV__: version and service on the port 
+- __sV__: version and service on the port
 
 - __O__: remote OS detection using fingerprinting
 
@@ -47,8 +47,8 @@ Host is up (0.059s latency).
 Not shown: 989 filtered ports
 PORT     STATE SERVICE       VERSION
 53/tcp   open  domain?
-| fingerprint-strings: 
-|   DNSVersionBindReqTCP: 
+| fingerprint-strings:
+|   DNSVersionBindReqTCP:
 |     version
 |_    bind
 88/tcp   open  kerberos-sec  Microsoft Windows Kerberos (server time: 2020-05-28 19:18:38Z)
@@ -72,10 +72,10 @@ Service Info: Host: MONTEVERDE; OS: Windows; CPE: cpe:/o:microsoft:windows
 
 Host script results:
 |_clock-skew: -46m55s
-| smb2-security-mode: 
-|   2.02: 
+| smb2-security-mode:
+|   2.02:
 |_    Message signing enabled and required
-| smb2-time: 
+| smb2-time:
 |   date: 2020-05-28T19:21:03
 |_  start_date: N/A
 
@@ -83,14 +83,14 @@ OS and Service detection performed. Please report any incorrect results at https
 # Nmap done at Thu May 28 15:10:35 2020 -- 1 IP address (1 host up) scanned in 315.60 seconds
 ```
 
-After the results come back, we also run a full port scan to see if any additional ports may be open. 
+After the results come back, we also run a full port scan to see if any additional ports may be open.
 
 ```bash
 $ nmap -O -sV -sC -p- -oN full172.txt 10.10.10.172
 5985/tcp  open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
 ```
 
-The port that we make note of from the full scan is 5985. This tells us that the box is running `WinRM 2.0 (Microsoft Windows Remote Management)`. Once we find some credentials, I may be able to gain a foothold through this service.
+The port that we make note of from the full scan is 5985. This tells us that the box is running `WinRM 2.0 (Microsoft Windows Remote Management)`. Once we find some credentials, we may be able to gain a foothold through this service.
 
 Next, we'll run `enum4linux`, a tool primarily used to enumerate Windows or Samba systems.
 
@@ -98,11 +98,11 @@ Next, we'll run `enum4linux`, a tool primarily used to enumerate Windows or Samb
 $ enum4linux -U -o 10.10.10.169
 ```
 
-One of the most crucial items we receive from `enum4linux` are users on the system. Two users stand out and are not like the others: `AAD__987d7f2f57d2` and `SABatchJobs`. 
+One of the most crucial items we receive from `enum4linux` are users on the system. Two users stand out and are not like the others: `AAD__987d7f2f57d2` and `SABatchJobs`.
 
 ![](images/enum-users.png)
 
-More enumeration doesn't yield much information and we don't have any potential passwords. HackTheBox doesn't generally encourage bruteforcing credentials, so we'll try to use the two usernames from earlier as their own passwords. 
+More enumeration doesn't yield much information and we don't have any potential passwords. HackTheBox doesn't generally encourage bruteforcing credentials, so we'll try to use the two usernames from earlier as their own passwords.
 
 We have two potential services that accept logins, `SMB` and `WinRM`. We'll first try `SMB`. We can use `smbclient` to [enumerate shares](https://www.computerhope.com/unix/smbclien.htm) on _Monteverde_, but only if we have valid credentials. Fortunately, using the command and credentials below, we can sucessfully view the available shares.
 
@@ -110,7 +110,7 @@ We have two potential services that accept logins, `SMB` and `WinRM`. We'll firs
 $ smbclient -L 10.10.10.172 -U SABatchJobs%SABatchJobs
 ```
 
-The available shared resources are displayed. Let's enumerate some of the file system. 
+The available shared resources are displayed. Let's enumerate some of the file system.
 
 ![](images/shares.png)
 
@@ -140,7 +140,7 @@ Within the `users$` share we find multiple user folders. With some poking around
 </Objs>
 ```
 
-I can only assume that this belongs to the user mhope. With luck, this user also uses the same password across services. I leave the shares behind for now and return to attempt remote access using `WinRM`. 
+We can only assume that this belongs to the user mhope. With luck, this user also uses the same password across services. Let's leave the shares behind for now and return to attempt remote access using `WinRM`.
 
 With the help of `evil-winrm`, a Windows Remote Management tool for pentesting, we gain a foothold on the machine.
 
@@ -168,7 +168,7 @@ Let's download the two files `AdDecrypt.exe` and `mcrypt.dll` and uploaded them 
 
 ![](images/uploads.png)
 
-Afterwards, we'll navigate to the `Microsoft Azure AD Sync\Bin` directory, and run the executable. 
+Afterwards, we'll navigate to the `Microsoft Azure AD Sync\Bin` directory, and run the executable.
 
 ```powershell
 > cd “C:\Program Files\Microsoft Azure AD Sync\Bin”
@@ -213,7 +213,7 @@ Let's navigate to the Administrator desktop and collect the flag. _Monteverde_ r
 
 - Don't use default or weak passwords, specifically, enforce strong policies, even on service accounts (especially on service accounts). Avoid using the same password across multiple services.
 
-- Patch management; Azure AD Connect should be updated when patches are available and proved stable. 
+- Patch management; Azure AD Connect should be updated when patches are available and proved stable.
 
 - Additionally, the accounts used for services should be dedicated service accounts and not an administrator account (principle of least privilege).
 

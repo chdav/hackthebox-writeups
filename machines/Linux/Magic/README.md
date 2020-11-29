@@ -256,7 +256,7 @@ Finally, we'll connect via SSH and capture the final flag!
 
 ### Mitigation
 
-- Input validation to avoid SQL injection is very important. Bypassing a log in is pretty mild in comparison to dumbing a database, but both are dangerous. Positive Technologies has some [great information](https://www.ptsecurity.com/ww-en/analytics/knowledge-base/how-to-prevent-sql-injection-attacks/#2) to help mitigate the risk of this occurring.
+- Input validation to avoid SQL injection is very important. Bypassing a log in is pretty mild in comparison to dumping a database, but both are dangerous. Positive Technologies has some [great information](https://www.ptsecurity.com/ww-en/analytics/knowledge-base/how-to-prevent-sql-injection-attacks/#2) to help mitigate the risk of this occurring.
 
 - In line with input validation, image validation is also of top priority. As this box demonstrates, weak validation can lead to remote code execution. At the least, there was some level of validation occurring, but only checking the last extension on a file is easily bypassed. OWASP has an awesome [cheat sheet](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html) detailing mitigation techniques for file upload vulnerabilities.
 
