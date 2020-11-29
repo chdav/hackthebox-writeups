@@ -4,7 +4,7 @@
 
 - ### [Admirer](machines/Linux/Admirer/README.md)
 
-- ### [Blunder](machines/Linux/Blunder/README.md) - _Active_
+- ### [Blunder](machines/Linux/Blunder/README.md)
 
 - ### [Cache](machines/Linux/Cache/README.md)
 
