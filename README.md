@@ -14,7 +14,7 @@
 
 - ### [SneakyMailer](machines/Linux/SneakyMailer/README.md) - _Active_
 
-- ### [Tabby](machines/Linux/Tabby/README.md) - _Active_
+- ### [Tabby](machines/Linux/Tabby/README.md)
 
 - ### [Traceback](machines/Linux/Traceback/README.md)
 
