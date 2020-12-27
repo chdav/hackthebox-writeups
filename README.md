@@ -12,8 +12,6 @@
 
 - ### [OpenAdmin](machines/Linux/OpenAdmin/README.md)
 
-- ### [SneakyMailer](machines/Linux/SneakyMailer/README.md) - _Active_
-
 - ### [Tabby](machines/Linux/Tabby/README.md)
 
 - ### [Traceback](machines/Linux/Traceback/README.md)
@@ -24,7 +22,7 @@
 
 - ### [Cascade](machines/Windows/Cascade/README.md)
 
-- ### [Fuse](machines/Windows/Fuse/README.md) - _Active_
+- ### [Fuse](machines/Windows/Fuse/README.md)
 
 - ### [Monteverde](machines/Windows/Monteverde/README.md)
 
